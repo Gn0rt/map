@@ -17,16 +17,98 @@
     ></script>
     <title>Map</title>
     <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
       #map {
-        height: 600px;
-        width: 800px;
+        height: 100%;
+        width: 100%;
+        z-index: 1;
+      }
+      #log-container {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 10px;
+        padding: 10px;
+        width: 320px;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        z-index: 999;
+        font-family: Arial, sans-serif;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid #ccc;
+        padding: 4px 6px;
+        text-align: left;
+      }
+
+      tr.has-customer {
+        background-color: #e0f7e9;
+      }
+
+      tr:nth-child(even):not(.has-customer) {
+        background-color: #f7f7f7;
+      }
+
+      th {
+        position: sticky;
+        top: 0;
+        background-color: #fff;
+        z-index: 1;
       }
     </style>
   </head>
   <body>
     <h1>Find your location</h1>
     <div id="map"></div>
+    <div id="log-container">
+      <table id="log-table">
+        <thead>
+          <tr>
+            <th>Thời điểm</th>
+            <th>V-GPS</th>
+            <th>Km tích lũy</th>
+            <th>Trạng thái</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr>
+            <th colspan="3">Tổng km không có khách:</th>
+            <td class="noCustomer">0</td>
+          </tr>
+          <tr>
+            <th colspan="3">Tổng km có khách:</th>
+            <td class="hasCustomer">0</td>
+          </tr>
+          <tr>
+            <th colspan="3">Tổng km trong ngày:</th>
+            <td class="total">0</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <!-- <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-o9N1jRVvZf7kBsjV4PRb0Vxu0rjA1r0JjG6x9Z1Uu+0="
+      crossorigin=""
+    ></script> -->
+    <!-- Tutorial map leaflet -->
+    <!-- <script src="./main.js"></script> -->
 
-    <script src="./main.js"></script>
+    <script src="./followroute.js"></script>
   </body>
 </html>
