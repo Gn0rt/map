@@ -1,10 +1,9 @@
 //setview([latitude, longtitude], zoom) (vĩ độ, kinh độ)
 var map = L.map("map").setView([21.0285, 105.8542], 13);
 
-L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  maxZoom: 19,
-  attribution:
-    '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+L.tileLayer("http://{s}.google.com/vt?lyrs=m&x={x}&y={y}&z={z}", {
+  maxZoom: 20,
+  subdomains: ["mt0", "mt1", "mt2", "mt3"],
 }).addTo(map);
 
 // Dùng HTML5 Geolocation, yêu cầu trình duyệt lấy vị trí hiện tại
@@ -16,13 +15,6 @@ map.on("locationfound", function (e) {
 
 //đánh giấu vị trí
 var marker = L.marker([20.995237, 105.729336]).addTo(map);
-
-var circle = L.circle([20.995237, 105.729336], {
-  color: "red",
-  fillColor: "#f03",
-  fillOpacity: 0.2,
-  radius: 500,
-}).addTo(map);
 
 var polygon = L.polygon([
   [20.995237, 105.729336],

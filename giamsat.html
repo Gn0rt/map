@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+      integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.datatables.net/2.0.7/css/dataTables.dataTables.min.css"
+    />
+    <link rel="stylesheet" href="./giamsat.css" />
+    <title>Giám sát</title>
+    <style>
+      .dt-scroll-body::-webkit-scrollbar-track {
+        -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+        background-color: #f5f5f5;
+        border-radius: 10px;
+      }
+
+      .dt-scroll-body::-webkit-scrollbar {
+        width: 6px;
+        background-color: #f5f5f5;
+      }
+
+      .dt-scroll-body::-webkit-scrollbar-thumb {
+        background-color: #777;
+        border-radius: 10px;
+      }
+      .dt-scroll-headInner {
+        /* width: 100% !important; */
+      }
+      .customTables.dataTable {
+        width: 100% !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div id="log-container">
+      <div class="tabs">
+        <p class="tab active" data-tab="giam-sat">Giám sát</p>
+        <p class="tab" data-tab="lo-trinh">Lộ trình</p>
+      </div>
+      <div id="giam-sat" class="giamsat tab-content active">
+        <form action="">
+          <div class="form-control">
+            <label for="">MMSI: </label>
+            <input
+              type="text"
+              class="search-input"
+              id=""
+              placeholder="Nhập MMIS..."
+            />
+          </div>
+        </form>
+        <table id="log-table" class="customTable">
+          <thead>
+            <tr>
+              <th>Icon</th>
+              <th>MMSI</th>
+              <th>V(Km/h)</th>
+              <th>TIme</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+        <div class="lists">
+          <ul class="list-items">
+            <li class="item item-a">
+              <i class="fa-solid fa-mobile"></i>
+              <span>Thiết bị xanh</span>
+            </li>
+            <li class="item item-b">
+              <i class="fa-solid fa-mobile-screen"></i>
+              <span>Thiết bị đỏ</span>
+            </li>
+            <li class="item item-c">
+              <i class="fa-solid fa-mobile-screen-button"></i>
+              <span>Thiết bị xanh</span>
+            </li>
+            <li class="item item-d">
+              <i class="fa-solid fa-mobile-vibrate"></i>
+              <span>Thiết bị vàng</span>
+            </li>
+            <li>
+              <span class="count" style="margin-top: 0">10</span>
+              <span>Tổng thiết bị</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div id="lo-trinh" class="lotrinh tab-content">
+        <form action="">
+          <div class="form-control">
+            <label for="">Từ: </label>
+            <input type="text" class="datepicker" id="fromDate" />
+            <input type="time" id="fromTime" />
+          </div>
+          <div class="form-control">
+            <label for="">Đến: </label>
+            <input type="text" class="datepicker" id="toDate" />
+            <input type="time" id="toTime" />
+          </div>
+
+          <button type="button" id="btnSearch">Tìm kiếm</button>
+        </form>
+        <table id="tableFollow" class="customTables">
+          <thead>
+            <tr>
+              <th>Icon</th>
+              <th>MMSI</th>
+              <th>V(Km/h)</th>
+              <th>TIme</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script
+      src="https://code.jquery.com/jquery-3.7.1.js"
+      integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+      crossorigin="anonymous"
+    ></script>
+    <script
+      type="text/javascript"
+      charset="utf8"
+      src="https://cdn.datatables.net/2.0.7/js/dataTables.min.js"
+    ></script>
+
+    <script src="./main.js"></script>
+    <script>
+      $(document).ready(function () {
+        $(".tab").click(function () {
+          $(".tab").removeClass("active");
+          $(this).addClass("active");
+
+          $(".tab-content").removeClass("active");
+
+          const tabName = $(this).data("tab");
+
+          $("#" + tabName).addClass("active");
+
+          // 🔧 Khi tab được bật, điều chỉnh lại cột của DataTable bên trong
+          if (tabName === "giam-sat") {
+            $("#log-table").DataTable().columns.adjust();
+          } else if (tabName === "lo-trinh") {
+            $("#tableFollow").DataTable().columns.adjust();
+          }
+        });
+        const sampleData = [
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+          {
+            ic: "123",
+            bs: "29x512345",
+            km: "40km/h",
+            time: "20:00",
+          },
+        ];
+        $("#log-table").DataTable({
+          data: sampleData,
+          searching: true,
+          autoWidth: false,
+          scrollY: "50vh",
+          scrollX: true,
+          scrollCollapse: true,
+          orderCellsTop: true, // Bắt buộc: Để nó biết dòng 1 là Header Sort, dòng 2 là cái khác
+          paging: false,
+          info: false,
+          columns: [
+            {
+              data: "ic",
+              orderable: false,
+            },
+            {
+              data: "bs",
+              orderable: false,
+            },
+            {
+              data: "km",
+              width: "100px",
+              orderable: false,
+            },
+            {
+              data: "time",
+              orderable: false,
+            },
+          ],
+          dom: "lrt",
+          initComplete: function () {
+            var api = this.api();
+
+            // Dùng setTimeout để đảm bảo CSS thanh cuộn đã được áp dụng xong
+            // rồi mới bắt DataTables tính lại độ rộng cột
+            setTimeout(function () {
+              api.columns.adjust();
+            }, 200);
+          },
+        });
+
+        $("#tableFollow").DataTable({
+          data: sampleData,
+          searching: true,
+          autoWidth: false,
+          scrollY: "50vh",
+          scrollX: true,
+          scrollCollapse: true,
+          orderCellsTop: true, // Bắt buộc: Để nó biết dòng 1 là Header Sort, dòng 2 là cái khác
+          paging: false,
+          info: false,
+          columns: [
+            {
+              data: "ic",
+              width: "50px",
+              orderable: false,
+            },
+            {
+              data: "bs",
+              orderable: false,
+            },
+            {
+              data: "km",
+              orderable: false,
+            },
+            {
+              data: "time",
+              orderable: false,
+            },
+          ],
+          dom: "lrt",
+          initComplete: function () {
+            var api = this.api();
+
+            // Dùng setTimeout để đảm bảo CSS thanh cuộn đã được áp dụng xong
+            // rồi mới bắt DataTables tính lại độ rộng cột
+            setTimeout(function () {
+              api.columns.adjust();
+            }, 200);
+          },
+        });
+      });
+      // 🧩 Khi container resize, update lại layout của DataTable
+      window.addEventListener("resize", () => {
+        $("#log-table").DataTable().columns.adjust();
+        $("#tableFollow").DataTable().columns.adjust();
+      });
+    </script>
+  </body>
+</html>
