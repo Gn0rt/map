@@ -333,6 +333,27 @@ const allRouteData = {
   ],
 };
 
+// Dữ liệu quản lý (Master Data) - Nơi bạn đặt biến isActive
+const vehicleInfo = {
+  "29x512345": {
+    driverName: "Nguyễn Văn A",
+    phone: "0987654321",
+    isActive: true, // Đang hoạt động -> Hiển thị
+    color: "blue", // Màu xe (nếu muốn custom icon)
+  },
+  "29x523456": {
+    driverName: "Trần Thị B",
+    phone: "0123456789",
+    isActive: true, // Nếu false -> Xe này sẽ ẩn khỏi map
+    color: "red",
+  },
+};
+// Icon xe taxi
+const carIcon = L.icon({
+  iconUrl: "https://cdn-icons-png.flaticon.com/512/3097/3097136.png",
+  iconSize: [32, 32],
+  iconAnchor: [16, 16],
+});
 var map = L.map("map").setView([20.99, 105.73], 13);
 
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -354,6 +375,125 @@ let tbody = document.querySelector("#log-table tbody");
 let totalHasCustomer = 0;
 let totalNoCustomer = 0;
 let prevPoint = null; // Dùng để tính km giữa các điểm
+
+// --- 3. QUẢN LÝ LAYER VÀ TRẠNG THÁI ---
+// Biến này lưu trữ marker và các path của từng xe để update
+// Cấu trúc: { "29x512345": { marker: L.marker, lastLatLng: [], currentIndex: 0 } }
+const vehicleLayers = {};
+
+// Hàm khởi tạo các xe đang Active
+function initVehicles() {
+  Object.keys(vehicleInfo).forEach((plate) => {
+    const info = vehicleInfo[plate];
+
+    // KIỂM TRA IS ACTIVE
+    if (!info.isActive) return; // Nếu không active, bỏ qua, không vẽ
+
+    // Nếu active, tạo object quản lý cho xe này
+    vehicleLayers[plate] = {
+      marker: null,
+      lastLatLng: null,
+      currentIndex: 0,
+    };
+  });
+}
+
+// --- 4. HÀM SIMULATION (CHẠY REALTIME) ---
+function runSimulation() {
+  Object.keys(vehicleLayers).forEach((plate) => {
+    console.log("Updating vehicle: ", plate);
+    const tracker = vehicleLayers[plate];
+    const route = allRouteData[plate]; // Lấy lộ trình tương ứng của xe
+
+    // Nếu chạy hết lộ trình thì thôi
+    if (!route || tracker.currentIndex >= route.length) return;
+
+    const dataPoint = route[tracker.currentIndex];
+    const currentLatLng = [dataPoint.lat, dataPoint.lng];
+
+    // a. Vẽ/Update Marker
+    if (!tracker.marker) {
+      // Tạo marker mới nếu chưa có
+      tracker.marker = L.marker(currentLatLng, { icon: carIcon }).addTo(map);
+
+      // GẮN SỰ KIỆN CLICK ĐỂ MỞ MODAL
+      tracker.marker.on("click", function () {
+        openModal(plate, dataPoint);
+      });
+    } else {
+      // Update vị trí marker
+      tracker.marker.setLatLng(currentLatLng);
+
+      // Update lại sự kiện click để luôn lấy dataPoint mới nhất (ví dụ cập nhật speed, km)
+      tracker.marker.off("click");
+      tracker.marker.on("click", function () {
+        openModal(plate, dataPoint);
+      });
+    }
+
+    // b. Vẽ đường đi (Polyline)
+    if (tracker.lastLatLng) {
+      // Logic màu sắc: Có khách = Xanh, Không khách = Xám
+      const color = dataPoint.hasCustomer ? "green" : "gray";
+      L.polyline([tracker.lastLatLng, currentLatLng], {
+        color: color,
+        weight: 4,
+      }).addTo(map);
+    }
+
+    // Lưu trạng thái cũ & Tăng index
+    tracker.lastLatLng = currentLatLng;
+    tracker.currentIndex++;
+  });
+
+  // Lặp lại sau 1.5 giây
+  setTimeout(runSimulation, 1500);
+}
+
+// --- 5. XỬ LÝ MODAL ---
+function openModal(plate, currentData) {
+  const info = vehicleInfo[plate]; // Lấy thông tin tài xế
+  const modal = document.getElementById("modal");
+  const content = document.getElementById("modal-content");
+
+  // Render nội dung HTML
+  content.innerHTML = `
+                <div class="modal-row"><span>Biển số:</span> <b>${plate}</b></div>
+                <div class="modal-row"><span>Tài xế:</span> <b>${
+                  info.driverName
+                }</b></div>
+                <div class="modal-row"><span>SĐT:</span> <span>${
+                  info.phone
+                }</span></div>
+                <hr>
+                <div class="modal-row"><span>Trạng thái:</span> 
+                    <span style="color:${
+                      currentData.hasCustomer ? "green" : "gray"
+                    }; font-weight:bold">
+                        ${currentData.hasCustomer ? "ĐANG CÓ KHÁCH" : "XE RỖNG"}
+                    </span>
+                </div>
+                <div class="modal-row"><span>Tốc độ:</span> <b>${
+                  currentData.speed
+                } km/h</b></div>
+                <div class="modal-row"><span>Km tích lũy:</span> <b>${
+                  currentData.km
+                } km</b></div>
+                <div class="modal-row"><span>Cập nhật lúc:</span> <i>${
+                  currentData.time
+                }</i></div>
+            `;
+
+  modal.style.display = "flex"; // Hiện modal
+}
+
+function closeModal() {
+  document.getElementById("modal").style.display = "none";
+}
+
+// --- KHỞI CHẠY ---
+initVehicles();
+runSimulation();
 
 // ======================== HÀM TIỆN ÍCH ========================
 function resetMap() {

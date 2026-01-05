@@ -1,0 +1,88 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+#map {
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+}
+/* --- 1. TÙY BIẾN VỊ TRÍ & MŨI TÊN --- */
+/* Ẩn cái mũi tên tam giác mặc định đi vì ta sẽ hiển thị dạng thẻ bài bên cạnh */
+.right-side-popup .leaflet-popup-tip-container {
+  display: none;
+}
+
+/* Chỉnh lại margin cho khung popup để nó gọn hơn */
+.right-side-popup .leaflet-popup-content-wrapper {
+  background: rgba(255, 255, 255, 0.95); /* Hơi trong suốt nhẹ cho hiện đại */
+  border-radius: 8px;
+  box-shadow: 2px 2px 15px rgba(0, 0, 0, 0.3); /* Đổ bóng sang phải */
+  padding: 0; /* Xóa padding mặc định */
+}
+
+.right-side-popup .leaflet-popup-content {
+  margin: 0;
+  width: 270px !important; /* Cố định chiều rộng */
+}
+
+/* --- 2. GIAO DIỆN THẺ THÔNG TIN (INFO CARD) --- */
+.card-header {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  padding: 12px 15px;
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.card-body {
+  padding: 15px;
+  font-size: 14px;
+  color: #333;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 4px;
+}
+.info-row:last-child {
+  border: none;
+  margin: 0;
+}
+
+/* Nút hành động giả lập (ví dụ Xem chi tiết) */
+.card-action {
+  margin-top: 10px;
+  text-align: right;
+}
+.btn-detail {
+  background: #e9ecef;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #495057;
+}
+.btn-detail:hover {
+  background: #dee2e6;
+}
+
+/* Badge trạng thái */
+.badge {
+  font-size: 11px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: white;
+  color: #007bff;
+}

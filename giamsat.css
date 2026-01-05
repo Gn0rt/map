@@ -98,12 +98,6 @@ th {
     width: 100%;
 }
 
-
-
-#log-table_wrapper .dt-scroll .dt-scroll-head .dt-scroll-headInner {
-    /* width: 100% !important; */
-}
-
 div.dataTables_scrollBody::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -147,12 +141,15 @@ div.dataTables_scrollBody::-webkit-scrollbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 10px;
     margin-bottom: 10px;
+    gap: 10px;
 }
 
 .form-control label {
     font-size: 14px;
+    width: 60px;
+    /* fix width cho label để các dòng thẳng hàng */
+    text-align: right;
 }
 
 .form-control input {
@@ -162,6 +159,11 @@ div.dataTables_scrollBody::-webkit-scrollbar {
     border: 1px solid #353A5F;
     outline: none;
     border-radius: 5px;
+}
+
+#datefinish,
+.time-input {
+    margin-top: 5px;
 }
 
 #btnSearch {
